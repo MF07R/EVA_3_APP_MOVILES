@@ -1,39 +1,39 @@
-#Cashi — App de Finanzas Personales
+# Cashi — App de Finanzas Personales
 
 Aplicación móvil desarrollada con React Native y Expo para gestionar transacciones e ingresos personales.
 
 
 
-##Requisitos previos
+## Requisitos previos
 
 - Node.js instalado
 - Dispositivo físico con Expo Go o emulador Android/iOS
 
 
 
-##Instalación
+## Instalación
 
-####1. Clonar el repositorio
+#### 1. Clonar el repositorio
 
 https://github.com/MF07R/EVA_3_APP_MOVILES.git
 
-####2. Instalar dependencias
+#### 2. Instalar dependencias
 
 npm install
 
-####3. Instalar dependencias de hardware
+#### 3. Instalar dependencias de hardware
 
 npx expo install expo-image-picker
 npx expo install expo-location
 
-####4. Correr la app
+#### 4. Correr la app
 
 npx expo start
 
 
 Luego escanea el QR con Expo Go desde tu celular.
 
-##Funcionalidades
+## Funcionalidades
 
 - Crear, editar y eliminar transacciones
 - Crear, editar y eliminar categorías
@@ -42,7 +42,7 @@ Luego escanea el QR con Expo Go desde tu celular.
 - Registrar ubicación GPS de una transacción
 - Persistencia de datos con AsyncStorage
 
-##cambios respecto a la Evaluación 2
+## cambios respecto a la Evaluación 2
 
 Se agregaron dos campos opcionales al modelo `Transaction`:
 
@@ -56,10 +56,10 @@ Se crearon dos hooks nuevos:
 
 Los datos persisten en AsyncStorage junto con la transacción, por lo que sobreviven al cerrar y reabrir la app.
 
-##Uso de IA
+## Uso de IA
 
 Se utilizó Claude (Anthropic) como herramienta de apoyo para agregar estilos
 
-##Autora
+## Autora
 
 Maria Fernanda Rojas
