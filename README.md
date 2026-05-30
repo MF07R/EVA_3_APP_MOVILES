@@ -23,8 +23,8 @@ npm install
 
 #### 3. Instalar dependencias de hardware
 
-npx expo install expo-image-picker
-npx expo install expo-location
+- npx expo install expo-image-picker
+- npx expo install expo-location
 
 #### 4. Correr la app
 
