@@ -1,39 +1,41 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { useTransactions } from '../../hooks/useTransactions';
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { useAuth } from '../../hooks/useAuth'
+import { apiService } from '../../services/api'
 
 export default function BalanceScreen() {
-  const { totalIncome, totalExpense, balance, loading, loadTransactions } = useTransactions();
+  const { token } = useAuth()
+  const [balance, setBalance] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  useFocusEffect(
-    useCallback(() => { loadTransactions(); }, [])
-  );
+  useEffect(() => {
+    if (!token) return
+    apiService.get<any>('/transactions/balance', token)
+      .then(setBalance)
+      .finally(() => setLoading(false))
+  }, [token])
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} color="#000" />;
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} />
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Resumen financiero</Text>
-
+      <Text style={styles.title}>Balance</Text>
       <View style={styles.row}>
         <Text style={styles.label}>Ingresos</Text>
-        <Text style={styles.income}>${totalIncome}</Text>
+        <Text style={styles.income}>${balance?.totalIncome ?? 0}</Text>
       </View>
-
       <View style={styles.row}>
         <Text style={styles.label}>Egresos</Text>
-        <Text style={styles.expense}>${totalExpense}</Text>
+        <Text style={styles.expense}>${balance?.totalExpense ?? 0}</Text>
       </View>
-
       <View style={[styles.row, styles.balanceRow]}>
         <Text style={styles.label}>Balance</Text>
-        <Text style={balance >= 0 ? styles.income : styles.expense}>
-          ${balance}
+        <Text style={balance?.balance >= 0 ? styles.income : styles.expense}>
+          ${balance?.balance ?? 0}
         </Text>
       </View>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -47,4 +49,4 @@ const styles = StyleSheet.create({
   label: { fontSize: 16, color: '#444' },
   income: { fontSize: 16, color: 'green', fontWeight: '600' },
   expense: { fontSize: 16, color: 'red', fontWeight: '600' },
-});
+})
