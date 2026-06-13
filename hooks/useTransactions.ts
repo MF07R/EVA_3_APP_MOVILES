@@ -1,81 +1,90 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useState } from 'react';
-import { Transaction } from '../types';
-
-type CreateTransactionInput = Omit<Transaction, 'id' | 'date'>;
-type UpdateTransactionInput = Partial<Omit<Transaction, 'id' | 'date'>>;
-
-const STORAGE_KEY = 'transactions';
+import { useCallback, useState } from 'react'
+import { apiService } from '../services/api'
+import { uploadImage } from '../services/upload.service'
+import {
+  CreateTransactionInput,
+  Transaction,
+  TransactionAPI,
+  UpdateTransactionInput,
+  mapCreateTransactionInputToAPI,
+  mapTransactionAPItoUI,
+  mapUpdateTransactionInputToAPI,
+} from '../types'
+import { useAuth } from './useAuth'
 
 export function useTransactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // El cálculo del balance vive en el hook, no en el componente
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpense = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const balance = totalIncome - totalExpense;
+  const { token } = useAuth()
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const loadTransactions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    if (!token) return
+    setLoading(true)
+    setError(null)
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const data = raw ? JSON.parse(raw) : [];
-      setTransactions(data);
+      const data = await apiService.get<TransactionAPI[]>('/transactions', token)
+      setTransactions(data.map(mapTransactionAPItoUI))
     } catch (e) {
-      setError('No se pudieron cargar las transacciones');
+      setError(e instanceof Error ? e.message : 'Error al cargar')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
-
-  const persist = async (data: Transaction[]) => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    setTransactions(data);
-  };
+  }, [token])
 
   const createTransaction = async (input: CreateTransactionInput) => {
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      ...input,
-    };
-    await persist([...transactions, newTransaction]);
-  };
+    if (!token) return
+
+    let imageUrl: string | undefined
+    if (input.photoUri) {
+      imageUrl = await uploadImage(input.photoUri, token)
+    }
+
+    const nueva = await apiService.post<TransactionAPI>(
+      '/transactions',
+      mapCreateTransactionInputToAPI(input, imageUrl),
+      token
+    )
+    setTransactions(prev => [...prev, mapTransactionAPItoUI(nueva)])
+  }
 
   const updateTransaction = async (id: string, input: UpdateTransactionInput) => {
-    const updated = transactions.map(t =>
-      t.id === id ? { ...t, ...input } : t
-    );
-    await persist(updated);
-  };
+    if (!token) return
+
+    let imageUrl: string | undefined
+    if (input.photoUri && input.photoUri.startsWith('file://')) {
+      imageUrl = await uploadImage(input.photoUri, token)
+    } else {
+      imageUrl = input.photoUri
+    }
+
+    const actualizada = await apiService.patch<TransactionAPI>(
+      `/transactions/${id}`,
+      mapUpdateTransactionInputToAPI(input, imageUrl),
+      token
+    )
+    setTransactions(prev =>
+      prev.map(t => t.id === id ? mapTransactionAPItoUI(actualizada) : t)
+    )
+  }
 
   const deleteTransaction = async (id: string) => {
-    await persist(transactions.filter(t => t.id !== id));
-  };
+    if (!token) return
+    await apiService.delete(`/transactions/${id}`, token)
+    setTransactions(prev => prev.filter(t => t.id !== id))
+  }
 
   const getById = (id: string) =>
-    transactions.find(t => t.id === id);
+    transactions.find(t => t.id === id)
 
   return {
     transactions,
     loading,
     error,
-    totalIncome,
-    totalExpense,
-    balance,
     loadTransactions,
     createTransaction,
     updateTransaction,
     deleteTransaction,
     getById,
-  };
+  }
 }
