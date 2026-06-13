@@ -28,7 +28,7 @@ npx expo install expo-location
 npx expo install expo-secure-store
 
 # 5. Correr la app
-npx yarn start --tunnel
+ yarn start --tunnel
 
 Luego escanea el QR con Expo Go desde tu celular.
 
@@ -87,4 +87,4 @@ Se utilizó Claude (Anthropic) como herramienta de apoyo para los estilos
 
 ## Nota sobre iOS
 
-La API presenta un error en Expo Go con `TypeError: Network request failed`. ESta fue verificada con Thunder Client donde responde con los códigos esperados.
+La API presenta un error en Expo Go con `TypeError: Network request failed`. Esta fue verificada con Thunder Client donde responde con los códigos esperados.
